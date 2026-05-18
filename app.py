@@ -36,8 +36,8 @@ st.markdown(
 )
 
 
-@st.cache_resource
 def get_db() -> NotesDatabase:
+  """Not cached: Streamlit resource cache can keep a stale class after deploy (missing new methods)."""
   return NotesDatabase()
 
 

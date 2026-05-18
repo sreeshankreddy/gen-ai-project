@@ -55,39 +55,6 @@ class NotesDatabase:
       )
       self._migrate_notes_user_id(conn)
 
-  def create(
-    self,
-    title: str,
-    source_type: str,
-    raw_content: str,
-    short_summary: str = "",
-    key_points: str = "",
-    chapter_summary: str = "",
-    practice_questions: str = "",
-  ) -> int:
-    now = datetime.now(timezone.utc).isoformat()
-    with self._connect() as conn:
-      cursor = conn.execute(
-        """
-        INSERT INTO notes (
-          title, source_type, raw_content, short_summary, key_points,
-          chapter_summary, practice_questions, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-          title,
-          source_type,
-          raw_content,
-          short_summary,
-          key_points,
-          chapter_summary,
-          practice_questions,
-          now,
-          now,
-        ),
-      )
-      return int(cursor.lastrowid)
-
   def username_exists(self, username: str) -> bool:
     with self._connect() as conn:
       row = conn.execute(

@@ -46,13 +46,90 @@ def get_summarizer() -> SummarizerService:
   return SummarizerService()
 
 
-def render_header() -> None:
+def render_header(*, signed_in: bool = True) -> None:
   st.markdown('<p class="main-header">📚 AI Notes Summarizer</p>', unsafe_allow_html=True)
-  st.markdown(
-    '<p class="sub-header">Upload PDF or paste notes → get short summaries, key points, '
-    "chapter-wise breakdowns, and practice questions. Built for students & exam prep.</p>",
-    unsafe_allow_html=True,
-  )
+  if signed_in:
+    st.markdown(
+      '<p class="sub-header">Upload PDF or paste notes → get short summaries, key points, '
+      "chapter-wise breakdowns, and practice questions. Built for students & exam prep.</p>",
+      unsafe_allow_html=True,
+    )
+  else:
+    st.markdown(
+      '<p class="sub-header">Sign in or create an account to save and manage your summaries.</p>',
+      unsafe_allow_html=True,
+    )
+
+
+def _user_id() -> int:
+  return int(st.session_state["auth_user_id"])
+
+
+def _sign_out() -> None:
+  for key in (
+    "auth_user_id",
+    "auth_username",
+    "nav_page",
+    "selected_note_id",
+    "summary_complete_note_id",
+    "create_form_key",
+  ):
+    st.session_state.pop(key, None)
+
+
+def page_sign_in(db: NotesDatabase) -> None:
+  st.subheader("Sign in")
+  with st.form("sign_in_form"):
+    username = st.text_input("Username", autocomplete="username")
+    password = st.text_input("Password", type="password", autocomplete="current-password")
+    submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
+  if submitted:
+    user = db.authenticate(username, password)
+    if user:
+      st.session_state["auth_user_id"] = user["id"]
+      st.session_state["auth_username"] = user["username"]
+      st.session_state["nav_page"] = "Create"
+      st.rerun()
+    else:
+      st.error("Invalid username or password.")
+
+
+def page_sign_up(db: NotesDatabase) -> None:
+  st.subheader("Create account")
+  with st.form("sign_up_form"):
+    username = st.text_input("Choose a username", key="su_user", autocomplete="username")
+    password = st.text_input("Password", type="password", key="su_pw", autocomplete="new-password")
+    password2 = st.text_input("Confirm password", type="password", key="su_pw2", autocomplete="new-password")
+    submitted = st.form_submit_button("Create account", type="primary", use_container_width=True)
+  if submitted:
+    u = username.strip()
+    if len(u) < 2:
+      st.error("Username must be at least 2 characters.")
+      return
+    if len(password) < 6:
+      st.error("Password must be at least 6 characters.")
+      return
+    if password != password2:
+      st.error("Passwords do not match.")
+      return
+    new_id = db.register_user(u, password)
+    if new_id is None:
+      st.error("That username is already taken.")
+      return
+    st.session_state["auth_user_id"] = new_id
+    st.session_state["auth_username"] = u
+    st.session_state["nav_page"] = "Create"
+    st.rerun()
+
+
+def page_auth() -> None:
+  render_header(signed_in=False)
+  db = get_db()
+  tab1, tab2 = st.tabs(["Sign in", "Sign up"])
+  with tab1:
+    page_sign_in(db)
+  with tab2:
+    page_sign_up(db)
 
 
 def _reset_create_form() -> None:
@@ -61,8 +138,8 @@ def _reset_create_form() -> None:
   st.session_state["nav_page"] = "Create"
 
 
-def _render_summary_success(db: NotesDatabase, note_id: int) -> None:
-  note = db.read_one(note_id)
+def _render_summary_success(db: NotesDatabase, note_id: int, user_id: int) -> None:
+  note = db.read_one(note_id, user_id)
   if not note:
     st.error("Summary not found.")
     if st.button("🏠 Return to Home", type="primary", use_container_width=True):
@@ -109,7 +186,7 @@ def page_create() -> None:
 
   complete_id = st.session_state.get("summary_complete_note_id")
   if complete_id:
-    _render_summary_success(db, int(complete_id))
+    _render_summary_success(db, int(complete_id), _user_id())
     return
 
   form_key = st.session_state.get("create_form_key", 0)
@@ -162,6 +239,7 @@ def page_create() -> None:
         title=title.strip(),
         source_type=source_type,
         raw_content=raw_text,
+        user_id=_user_id(),
         short_summary=results["short_summary"],
         key_points=results["key_points"],
         chapter_summary=results["chapter_summary"],
@@ -183,7 +261,8 @@ def _note_selector(notes: list) -> int | None:
 def page_read() -> None:
   st.subheader("📖 My Summaries (Read)")
   db = get_db()
-  notes = db.read_all()
+  uid = _user_id()
+  notes = db.read_all(uid)
 
   if not notes:
     st.info("No summaries yet. Create one from **Create** in the sidebar.")
@@ -194,7 +273,7 @@ def page_read() -> None:
     return
 
   st.session_state["selected_note_id"] = note_id
-  note = db.read_one(note_id)
+  note = db.read_one(note_id, uid)
   if not note:
     st.error("Note not found.")
     return
@@ -229,7 +308,8 @@ def page_read() -> None:
 def page_update() -> None:
   st.subheader("✏️ Edit Summary (Update)")
   db = get_db()
-  notes = db.read_all()
+  uid = _user_id()
+  notes = db.read_all(uid)
 
   if not notes:
     st.info("No summaries to edit.")
@@ -247,7 +327,7 @@ def page_update() -> None:
 
   label = st.selectbox("Select note to edit", keys, index=default_index)
   note_id = options[label]
-  note = db.read_one(note_id)
+  note = db.read_one(note_id, uid)
   if not note:
     st.error("Note not found.")
     return
@@ -263,6 +343,7 @@ def page_update() -> None:
   if submitted:
     ok = db.update(
       note_id,
+      uid,
       title=title,
       short_summary=short_summary,
       key_points=key_points,
@@ -280,7 +361,8 @@ def page_update() -> None:
 def page_delete() -> None:
   st.subheader("🗑️ Delete Summary")
   db = get_db()
-  notes = db.read_all()
+  uid = _user_id()
+  notes = db.read_all(uid)
 
   if not notes:
     st.info("No summaries to delete.")
@@ -298,14 +380,14 @@ def page_delete() -> None:
 
   label = st.selectbox("Select note to delete", keys, index=default_index)
   note_id = options[label]
-  note = db.read_one(note_id)
+  note = db.read_one(note_id, uid)
   if not note:
     st.error("Note not found.")
     return
 
   st.warning(f"Delete **{note['title']}**? This cannot be undone.")
   if st.button("Confirm delete", type="primary"):
-    if db.delete(note_id):
+    if db.delete(note_id, uid):
       st.success("Deleted.")
       if st.session_state.get("selected_note_id") == note_id:
         del st.session_state["selected_note_id"]
@@ -315,6 +397,10 @@ def page_delete() -> None:
 
 
 def main() -> None:
+  if not st.session_state.get("auth_user_id"):
+    page_auth()
+    return
+
   render_header()
 
   pages = ["Create", "My Summaries", "Edit", "Delete"]
@@ -323,6 +409,11 @@ def main() -> None:
     default_page = "Create"
 
   with st.sidebar:
+    user = st.session_state.get("auth_username", "User")
+    st.caption(f"Signed in as **{user}**")
+    if st.button("Sign out", use_container_width=True):
+      _sign_out()
+      st.rerun()
     st.header("Navigation")
     page = st.radio(
       "CRUD operations",

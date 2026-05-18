@@ -55,6 +55,45 @@ def render_header() -> None:
   )
 
 
+def _reset_create_form() -> None:
+  st.session_state.pop("summary_complete_note_id", None)
+  st.session_state["create_form_key"] = st.session_state.get("create_form_key", 0) + 1
+  st.session_state["nav_page"] = "Create"
+
+
+def _render_summary_success(db: NotesDatabase, note_id: int) -> None:
+  note = db.read_one(note_id)
+  if not note:
+    st.error("Summary not found.")
+    if st.button("🏠 Return to Home", type="primary", use_container_width=True):
+      _reset_create_form()
+      st.rerun()
+    return
+
+  source_label = "PDF" if note["source_type"] == "pdf" else "notes"
+  st.success(f"Your {source_label} was summarized and saved as **{note['title']}** (note #{note_id}).")
+
+  with st.expander("Short summary", expanded=True):
+    st.write(note.get("short_summary") or "_No summary._")
+  with st.expander("Key points"):
+    st.write(note.get("key_points") or "_No key points._")
+  with st.expander("Chapter summary"):
+    st.write(note.get("chapter_summary") or "_No chapter summary._")
+  with st.expander("Practice questions"):
+    st.write(note.get("practice_questions") or "_No questions._")
+
+  c1, c2 = st.columns(2)
+  with c1:
+    if st.button("📖 View in My Summaries", use_container_width=True):
+      st.session_state["selected_note_id"] = note_id
+      st.session_state["nav_page"] = "My Summaries"
+      st.rerun()
+  with c2:
+    if st.button("🏠 Return to Home", type="primary", use_container_width=True):
+      _reset_create_form()
+      st.rerun()
+
+
 def page_create() -> None:
   st.subheader("➕ Create New Summary")
   summarizer = get_summarizer()
@@ -68,17 +107,25 @@ def page_create() -> None:
   else:
     st.success(f"AI mode active ({summarizer.model}).")
 
+  complete_id = st.session_state.get("summary_complete_note_id")
+  if complete_id:
+    _render_summary_success(db, int(complete_id))
+    return
+
+  form_key = st.session_state.get("create_form_key", 0)
+
   col1, col2 = st.columns([1, 1])
   with col1:
     st.markdown('<div class="feature-card">📄 PDF Upload</div>', unsafe_allow_html=True)
-    uploaded = st.file_uploader("Upload PDF", type=["pdf"])
+    uploaded = st.file_uploader("Upload PDF", type=["pdf"], key=f"pdf_upload_{form_key}")
   with col2:
     st.markdown('<div class="feature-card">📝 Text Notes</div>', unsafe_allow_html=True)
-    title = st.text_input("Title", placeholder="e.g. Biology Chapter 3")
+    title = st.text_input("Title", placeholder="e.g. Biology Chapter 3", key=f"title_{form_key}")
     pasted_notes = st.text_area(
       "Paste your notes",
       height=220,
       placeholder="Paste lecture notes, textbook excerpts, or study material here...",
+      key=f"notes_{form_key}",
     )
 
   raw_text = ""
@@ -120,9 +167,8 @@ def page_create() -> None:
         chapter_summary=results["chapter_summary"],
         practice_questions=results["practice_questions"],
       )
-    st.success(f"Saved note #{note_id}")
+    st.session_state["summary_complete_note_id"] = note_id
     st.session_state["selected_note_id"] = note_id
-    st.session_state["nav_page"] = "My Summaries"
     st.rerun()
 
 

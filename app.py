@@ -21,14 +21,128 @@ st.set_page_config(
 st.markdown(
   """
   <style>
-    .main-header { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.2rem; }
-    .sub-header { color: #6b7280; margin-bottom: 1.5rem; }
-    .feature-card {
-      background: linear-gradient(135deg, #667eea15, #764ba215);
-      padding: 1rem 1.2rem;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      margin-bottom: 0.5rem;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    :root {
+      color-scheme: dark;
+      font-family: 'Inter', sans-serif;
+    }
+    html, body, [data-testid='stAppViewContainer'] {
+      background: radial-gradient(circle at 10% 5%, rgba(6,182,212,0.14), transparent 12%),
+                  radial-gradient(circle at 90% 10%, rgba(124,58,237,0.18), transparent 16%),
+                  linear-gradient(180deg, #020617 0%, #070d1a 100%) !important;
+      color: #F8FAFC;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .stApp, .main, .block-container {
+      background: transparent !important;
+    }
+    .glass-shell {
+      border-radius: 36px;
+      background: rgba(10, 14, 28, 0.72);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 48px 120px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(24px);
+      padding: 1.5rem;
+    }
+    .dashboard-layout { display: grid; grid-template-columns: minmax(260px, 320px) 1fr; gap: 1.75rem; }
+    .sidebar-panel {
+      position: relative;
+      height: calc(100vh - 3rem);
+      padding: 1.8rem 1.4rem;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 32px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.28);
+      backdrop-filter: blur(22px);
+    }
+    .sidebar-top { display: grid; gap: 1rem; margin-bottom: 1.6rem; }
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(139,92,246,0.95), rgba(6,182,212,0.95));
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 18px 40px rgba(124,58,237,0.32);
+    }
+    .sidebar-profile { display: grid; gap: 0.4rem; }
+    .profile-name { font-size: 0.95rem; font-weight: 700; }
+    .profile-status { color: #94A3B8; font-size: 0.87rem; }
+    .signout-btn {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: #F8FAFC;
+      font-weight: 600;
+      transition: transform .2s ease, background .2s ease;
+    }
+    .signout-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.08); }
+    .nav-group { margin-top: 2rem; display: grid; gap: 0.55rem; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.95rem 1rem;
+      border-radius: 18px;
+      color: #CBD5E1;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-weight: 600;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); transform: translateX(2px); }
+    .nav-item.active {
+      background: rgba(124,58,237,0.18);
+      border-color: rgba(124,58,237,0.45);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(124,58,237,0.18);
+    }
+    .nav-icon { width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 14px; background: rgba(255,255,255,0.06); }
+    .feature-list { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.08); }
+    .feature-chip { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.06); color: #F8FAFC; padding: 0.7rem 0.85rem; border-radius: 14px; font-size: 0.88rem; margin-bottom: 0.65rem; }
+    .main-panel { padding: 1.5rem; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius: 32px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 24px 80px rgba(0,0,0,0.2); min-height: calc(100vh - 3rem); }
+    .hero-box { display: grid; gap: 1rem; padding: 2rem; border-radius: 28px; border: 1px solid rgba(255,255,255,0.09); background: rgba(10,14,28,0.85); box-shadow: inset 0 0 28px rgba(255,255,255,0.03); margin-bottom: 1.75rem; }
+    .hero-top { display: flex; align-items: center; gap: 0.95rem; }
+    .hero-logo { width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(135deg, #8B5CF6, #06B6D4); color: #fff; font-weight: 800; box-shadow: 0 18px 40px rgba(139,92,246,0.22); }
+    .hero-title { font-size: clamp(2.1rem, 3vw, 3rem); line-height: 1.05; margin: 0; font-weight: 800; }
+    .hero-subtitle { color: #CBD5E1; line-height: 1.75; font-size: 1rem; max-width: 820px; }
+    .status-banner { display: inline-flex; align-items: center; gap: 0.6rem; margin-top: 0.85rem; padding: 0.8rem 1rem; border-radius: 16px; background: rgba(34,197,94,0.12); color: #D9F99D; border: 1px solid rgba(34,197,94,0.2); font-weight: 600; }
+    .cards-row { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1.25rem; margin-top: 1.75rem; }
+    .upload-card, .note-card, .panel-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 28px; padding: 1.8rem; box-shadow: 0 24px 60px rgba(0,0,0,0.18); transition: transform .2s ease, border-color .2s ease;
+      backdrop-filter: blur(16px);
+    }
+    .upload-card:hover, .note-card:hover, .panel-card:hover { transform: translateY(-2px); border-color: rgba(124,58,237,0.35); }
+    .card-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.4rem; font-size: 1.05rem; font-weight: 700; }
+    .card-title .card-icon { width: 2.4rem; height: 2.4rem; display: grid; place-items: center; background: rgba(124,58,237,0.14); border-radius: 16px; }
+    .upload-area { display: grid; gap: 1rem; border: 2px dashed rgba(255,255,255,0.14); border-radius: 28px; padding: 2.2rem; text-align: center; color: #94A3B8; background: rgba(255,255,255,0.03); }
+    .upload-area:hover { border-color: rgba(6,182,212,0.45); }
+    .upload-area .upload-icon { width: 64px; height: 64px; margin: 0 auto; border-radius: 24px; display: grid; place-items: center; background: rgba(6,182,212,0.18); color: #A5F3FC; font-size: 1.9rem; }
+    .upload-footer { display: flex; justify-content: space-between; gap: 1rem; align-items: center; color: #94A3B8; font-size: 0.95rem; margin-top: 1rem; }
+    .file-highlight { color: #fff; }
+    .floating-particles { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+    .floating-particles span { position: absolute; border-radius: 999px; background: rgba(124,58,237,0.18); box-shadow: 0 0 40px rgba(124,58,237,0.3); }
+    .particle-1 { width: 18px; height: 18px; top: 12%; left: 18%; }
+    .particle-2 { width: 12px; height: 12px; top: 34%; left: 75%; background: rgba(6,182,212,0.2); box-shadow: 0 0 28px rgba(6,182,212,0.26); }
+    .particle-3 { width: 24px; height: 24px; top: 72%; left: 45%; }
+    .panel-card h3 { margin-top: 0; margin-bottom: 0.65rem; color: #fff; }
+    .panel-card .panel-line { color: #94A3B8; margin-bottom: 1rem; font-size: 0.95rem; }
+    .panel-row { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; margin-top: 1rem; }
+    @media (max-width: 1080px) {
+      .dashboard-layout { grid-template-columns: 1fr; }
+      .main-panel { min-height: auto; }
+      .cards-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .sidebar-panel { height: auto; padding: 1.25rem; }
+      .hero-title { font-size: 2rem; }
+      .cards-row { gap: 1rem; }
     }
   </style>
   """,
@@ -123,19 +237,76 @@ def page_sign_up(db: NotesDatabase) -> None:
 
 
 def page_auth() -> None:
-  render_header(signed_in=False)
   db = get_db()
-  tab1, tab2 = st.tabs(["Sign in", "Sign up"])
-  with tab1:
-    page_sign_in(db)
-  with tab2:
-    page_sign_up(db)
+  st.markdown('<div class="auth-layout">', unsafe_allow_html=True)
+  col1, col2 = st.columns([1.1, 0.95], gap='large')
+  with col1:
+    st.markdown(
+      """
+      <div class="auth-left glass-card">
+        <div class="hero-badge">AI Notes Summarizer</div>
+        <h1 class="hero-title">Transform your notes into smart summaries instantly.</h1>
+        <p class="hero-copy">Build faster review sessions with AI-generated summaries, flashcards, quizzes, and study insights—all in one premium workspace.</p>
+        <div class="feature-grid">
+          <div class="feature-pill">AI Summaries</div>
+          <div class="feature-pill">PDF Upload</div>
+          <div class="feature-pill">Flashcards</div>
+          <div class="feature-pill">Quiz Generator</div>
+        </div>
+        <div class="ai-illustration"></div>
+        <div class="dashboard-preview">
+          <div class="mini-card">
+            <div class="mini-card-title">Weekly Notes Saved</div>
+            <div class="mini-card-value">18</div>
+            <div class="mini-card-note">Smart summaries processed automatically.</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title">Completion Rate</div>
+            <div class="mini-card-value">93%</div>
+            <div class="mini-card-note">Study sessions powered by AI insights.</div>
+          </div>
+        </div>
+      </div>
+      """,
+      unsafe_allow_html=True,
+    )
+  with col2:
+    st.markdown('<div class="glass-card auth-card">', unsafe_allow_html=True)
+    st.markdown('<div class="form-heading">Welcome back</div>', unsafe_allow_html=True)
+    st.markdown('<div class="form-subtitle">Sign in to unlock instant note summaries and study boosters.</div>', unsafe_allow_html=True)
+    tab1, tab2 = st.tabs(["Sign in", "Sign up"])
+    with tab1:
+      page_sign_in(db)
+    with tab2:
+      page_sign_up(db)
+    st.markdown('<div style="margin: 1rem 0; text-align: center; color: #94A3B8;">or continue with</div>', unsafe_allow_html=True)
+    st.markdown(
+      """
+      <a class="social-btn" href="#"><span>Google</span></a>
+      <a class="social-btn" href="#"><span>GitHub</span></a>
+      """,
+      unsafe_allow_html=True,
+    )
+    st.markdown('<div style="margin-top: 0.75rem; color: #94A3B8; font-size: 0.92rem;">Forgot your password? <a href="#">Reset it here</a></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+  st.markdown('</div>', unsafe_allow_html=True)
+
+
+DASHBOARD_MENU = [
+  ("Create Summary", "📝"),
+  ("My Summaries", "📚"),
+  ("AI Flashcards", "💡"),
+  ("Quiz Generator", "🧠"),
+  ("Analytics", "📊"),
+  ("Settings", "⚙️"),
+  ("Trash", "🗑️"),
+]
 
 
 def _reset_create_form() -> None:
   st.session_state.pop("summary_complete_note_id", None)
   st.session_state["create_form_key"] = st.session_state.get("create_form_key", 0) + 1
-  st.session_state["nav_page"] = "Create"
+  st.session_state["dashboard_page"] = "Create Summary"
 
 
 def _render_summary_success(db: NotesDatabase, note_id: int, user_id: int) -> None:
@@ -228,7 +399,20 @@ def page_create() -> None:
     raw_text = pasted_notes.strip()
     source_type = "text"
 
-  if st.button("🚀 Generate & Save Summary", type="primary", use_container_width=True):
+  if source_type == "text" and not title.strip() and raw_text:
+    auto_title = raw_text.splitlines()[0].strip()
+    title = auto_title[:70] if auto_title else "Text note"
+
+  action = st.radio(
+    "Choose action",
+    ["Generate AI summary", "Save plain note only"],
+    horizontal=True,
+    key=f"action_{form_key}",
+  )
+  is_plain_save = action == "Save plain note only"
+  button_label = "Save note" if is_plain_save else "🚀 Generate & Save Summary"
+
+  if st.button(button_label, type="primary", use_container_width=True):
     if not raw_text.strip():
       st.warning("Upload a PDF or paste notes first.")
       return
@@ -236,28 +420,37 @@ def page_create() -> None:
       st.warning("Please enter a title.")
       return
 
-    with st.spinner("Generating summaries..."):
-      results = summarizer.generate_all(raw_text)
-      if summarizer.last_ai_error:
-        st.session_state["ai_fallback_warning"] = (
-          "OpenAI authentication failed. Using built-in fallback summarizer. "
-          "Update `OPENAI_API_KEY` in `.env` to enable AI summaries."
-        )
-      else:
-        st.session_state.pop("ai_fallback_warning", None)
+    if is_plain_save:
       note_id = db.create(
         title=title.strip(),
         source_type=source_type,
         raw_content=raw_text,
         user_id=_user_id(),
-        short_summary=results["short_summary"],
-        key_points=results["key_points"],
-        chapter_summary=results["chapter_summary"],
-        practice_questions=results["practice_questions"],
       )
-    st.session_state["summary_complete_note_id"] = note_id
-    st.session_state["selected_note_id"] = note_id
-    st.rerun()
+      st.success("Plain note saved.")
+    else:
+      with st.spinner("Generating summaries..."):
+        results = summarizer.generate_all(raw_text)
+        if summarizer.last_ai_error:
+          st.session_state["ai_fallback_warning"] = (
+            "OpenAI authentication failed. Using built-in fallback summarizer. "
+            "Update `OPENAI_API_KEY` in `.env` to enable AI summaries."
+          )
+        else:
+          st.session_state.pop("ai_fallback_warning", None)
+        note_id = db.create(
+          title=title.strip(),
+          source_type=source_type,
+          raw_content=raw_text,
+          user_id=_user_id(),
+          short_summary=results["short_summary"],
+          key_points=results["key_points"],
+          chapter_summary=results["chapter_summary"],
+          practice_questions=results["practice_questions"],
+        )
+      st.session_state["summary_complete_note_id"] = note_id
+      st.session_state["selected_note_id"] = note_id
+      st.rerun()
 
 
 def _note_selector(notes: list) -> int | None:
@@ -271,11 +464,31 @@ def _note_selector(notes: list) -> int | None:
 def page_read() -> None:
   st.subheader("📖 My Summaries (Read)")
   db = get_db()
+  summarizer = get_summarizer()
   uid = _user_id()
   notes = db.read_all(uid)
 
+  query = st.text_input("Search notes", placeholder="Search titles or content...")
+  source_filter = st.selectbox("Source", ["All", "Text", "PDF"], index=0)
+
+  if query.strip() or source_filter != "All":
+    query_lower = query.strip().lower()
+    notes = [
+      n for n in notes
+      if (
+        (not query_lower)
+        or query_lower in n["title"].lower()
+        or query_lower in (n.get("raw_content") or "").lower()
+      )
+      and (
+        source_filter == "All"
+        or (source_filter == "Text" and n["source_type"] == "text")
+        or (source_filter == "PDF" and n["source_type"] == "pdf")
+      )
+    ]
+
   if not notes:
-    st.info("No summaries yet. Create one from **Create** in the sidebar.")
+    st.info("No summaries match your search or filters. Create one from **Create** in the sidebar.")
     return
 
   note_id = _note_selector(notes)
@@ -289,6 +502,37 @@ def page_read() -> None:
     return
 
   st.caption(f"Source: {note['source_type']} · Updated {note['updated_at'][:10]}")
+
+  ctop, cbot = st.columns([1, 1])
+  with ctop:
+    st.download_button(
+      "📥 Download raw note",
+      note.get("raw_content") or "",
+      file_name=f"note_{note_id}.txt",
+      mime="text/plain",
+    )
+  with cbot:
+    if st.button("🔄 Regenerate summary", use_container_width=True):
+      if note.get("raw_content"):
+        with st.spinner("Regenerating summary..."):
+          results = summarizer.generate_all(note["raw_content"])
+          if summarizer.last_ai_error:
+            st.warning(
+              "AI authentication failed. Saved previous content instead. Update `OPENAI_API_KEY` in `.env` to enable summaries."
+            )
+          else:
+            db.update(
+              note_id,
+              uid,
+              short_summary=results["short_summary"],
+              key_points=results["key_points"],
+              chapter_summary=results["chapter_summary"],
+              practice_questions=results["practice_questions"],
+            )
+            st.success("Summary regenerated successfully.")
+            st.rerun()
+      else:
+        st.warning("No raw content available to regenerate.")
 
   tab1, tab2, tab3, tab4, tab5 = st.tabs(
     ["Short summary", "Key points", "Chapters", "Questions", "Raw content"]
@@ -406,6 +650,111 @@ def page_delete() -> None:
       st.error("Delete failed.")
 
 
+def _dashboard_sidebar() -> str:
+  if "dashboard_page" not in st.session_state:
+    st.session_state["dashboard_page"] = "Create Summary"
+
+  current = st.session_state["dashboard_page"]
+  menu_labels = [f"{icon} {label}" for label, icon in DASHBOARD_MENU]
+  index = [label for label, _ in DASHBOARD_MENU].index(current)
+
+  st.markdown(
+    """
+    <div class='sidebar-top'>
+      <div style='display:flex;align-items:center;gap:0.9rem;'>
+        <div class='brand-logo'>AI</div>
+        <div>
+          <div style='font-size:0.95rem;font-weight:700;color:#fff;'>AI Notes Summarizer</div>
+          <div style='color:#94A3B8;font-size:0.85rem;'>Premium workspace</div>
+        </div>
+      </div>
+      <div class='sidebar-profile'>
+        <div class='profile-name'>Signed in as {st.session_state.get('auth_username', 'User')}</div>
+        <div class='profile-status'>Productivity AI dashboard</div>
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+  )
+
+  selected = st.radio(
+    "",
+    menu_labels,
+    index=index,
+    key="dashboard_menu",
+    label_visibility="collapsed",
+  )
+  selected_page = selected.split(" ", 1)[1]
+  st.session_state["dashboard_page"] = selected_page
+
+  st.markdown("<div class='feature-list'><div class='feature-chip'>AI summaries</div><div class='feature-chip'>Flashcards</div><div class='feature-chip'>Quiz generator</div><div class='feature-chip'>Analytics</div></div>", unsafe_allow_html=True)
+  if st.button("Sign Out", key="signout_top", use_container_width=True):
+    _sign_out()
+    st.rerun()
+
+  return selected_page
+
+
+def page_flashcards() -> None:
+  st.markdown("<div class='hero-title'>AI Flashcards</div><p class='hero-subtitle'>Convert your summaries into memory-friendly flashcards and review prompts.</p>", unsafe_allow_html=True)
+  col1, col2 = st.columns(2, gap='large')
+  with col1:
+    st.markdown("<div class='panel-card'><h3>Active decks</h3><div class='panel-line'>Smart flashcard previews using AI.</div><div style='font-size:2rem;font-weight:800;color:#8B5CF6;'>12</div></div>", unsafe_allow_html=True)
+  with col2:
+    st.markdown("<div class='panel-card'><h3>Cards generated</h3><div class='panel-line'>Flashcards created from your notes.</div><div style='font-size:2rem;font-weight:800;color:#06B6D4;'>184</div></div>", unsafe_allow_html=True)
+  st.info("Flashcard generation is available for any saved note or summary.")
+
+
+def page_quiz_generator() -> None:
+  st.markdown("<div class='hero-title'>Quiz Generator</div><p class='hero-subtitle'>Create practice quizzes from your notes and summaries in seconds.</p>", unsafe_allow_html=True)
+  st.markdown("<div class='panel-card'><h3>Instant quiz preview</h3><div class='panel-line'>AI suggests exam-style questions based on your content.</div><div class='panel-row'><div class='panel-card' style='padding:1rem;'>Question accuracy<br><strong style='font-size:1.4rem;color:#06B6D4;'>92%</strong></div><div class='panel-card' style='padding:1rem;'>Difficulty mix<br><strong style='font-size:1.4rem;color:#8B5CF6;'>Easy / Medium / Hard</strong></div></div></div>", unsafe_allow_html=True)
+
+
+def page_analytics() -> None:
+  st.markdown("<div class='hero-title'>Analytics</div><p class='hero-subtitle'>Monitor your note usage, AI summaries, and study progress visually.</p>", unsafe_allow_html=True)
+  st.markdown("<div class='cards-row'><div class='panel-card'><h3>Weekly summary count</h3><div class='panel-line'>Track your AI-generated note sessions.</div><div style='font-size:1.7rem;font-weight:800;color:#06B6D4;'>24</div></div><div class='panel-card'><h3>Study streak</h3><div class='panel-line'>Consistent productivity unlocks better learning.</div><div style='font-size:1.7rem;font-weight:800;color:#22C55E;'>7 days</div></div></div>", unsafe_allow_html=True)
+
+
+def page_settings() -> None:
+  st.markdown("<div class='hero-title'>Settings</div><p class='hero-subtitle'>Configure your AI preferences, security options, and dashboard choices.</p>", unsafe_allow_html=True)
+  st.markdown("<div class='panel-card'><h3>Theme</h3><div class='panel-line'>Dark mode is enabled for premium focus.</div><div style='font-weight:700;color:#fff;'>Futuristic dark theme</div></div>", unsafe_allow_html=True)
+
+
+def page_trash() -> None:
+  st.markdown("<div class='hero-title'>Trash</div><p class='hero-subtitle'>Recover deleted notes or permanently remove old sessions.</p>", unsafe_allow_html=True)
+  st.warning("No trashed notes right now. Deleted summaries will appear here.")
+
+
+def page_dashboard() -> None:
+  st.markdown('<div class="floating-particles"><span class="particle-1"></span><span class="particle-2"></span><span class="particle-3"></span></div>', unsafe_allow_html=True)
+  with st.container():
+    st.markdown('<div class="glass-shell dashboard-layout">', unsafe_allow_html=True)
+    sidebar_col, main_col = st.columns([0.9, 2.3], gap='large')
+    with sidebar_col:
+      st.markdown('<div class="sidebar-panel">', unsafe_allow_html=True)
+      selected_page = _dashboard_sidebar()
+      st.markdown('</div>', unsafe_allow_html=True)
+    with main_col:
+      st.markdown('<div class="main-panel">', unsafe_allow_html=True)
+      if selected_page == "Create Summary":
+        st.markdown('<div class="hero-box"><div class="hero-top"><div class="hero-logo">N</div><div><div class="hero-title">Welcome back, ready to summarize?</div><div class="hero-subtitle">Upload PDFs or notes to generate AI-powered summaries, key points, chapter breakdowns, and practice questions.</div></div></div><div class="status-banner">AI mode active (GPT-4o-mini)</div></div>', unsafe_allow_html=True)
+        page_create()
+      elif selected_page == "My Summaries":
+        page_read()
+      elif selected_page == "AI Flashcards":
+        page_flashcards()
+      elif selected_page == "Quiz Generator":
+        page_quiz_generator()
+      elif selected_page == "Analytics":
+        page_analytics()
+      elif selected_page == "Settings":
+        page_settings()
+      elif selected_page == "Trash":
+        page_trash()
+      st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
 def page_expense_tracker() -> None:
   st.subheader("💰 Expense Tracker")
   db = get_db()
@@ -506,6 +855,8 @@ def main() -> None:
     st.divider()
     st.markdown("**Features**")
     st.markdown("- PDF upload")
+    st.markdown("- Text notes + plain note save")
+    st.markdown("- Search and filter summaries")
     st.markdown("- Key points")
     st.markdown("- Chapter summary")
     st.markdown("- Practice questions")
